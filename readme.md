@@ -113,6 +113,3 @@ finally, add the include of the project in the root `settings.gradle` and press 
 include ':wittydashboard'
 ```
 
-# Issues found along the way
-First off, I realised that the FTCRobotController uses gradle 7.4.2 while the latest version (as the time of writing this) of GradleRIO uses 8.5, which caused me to have to use an older version of GradleRIO (currently using 2023.4.1) in order to make it work.
-
