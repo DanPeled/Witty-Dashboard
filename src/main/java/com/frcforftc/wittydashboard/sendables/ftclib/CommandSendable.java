@@ -1,6 +1,7 @@
 package com.frcforftc.wittydashboard.sendables.ftclib;
 
 import com.arcrobotics.ftclib.command.Command;
+import com.arcrobotics.ftclib.command.CommandScheduler;
 
 import org.frcforftc.networktables.sendable.Sendable;
 import org.frcforftc.networktables.sendable.SendableBuilder;
@@ -33,9 +34,8 @@ public class CommandSendable implements Sendable {
             }
         });
 
-//        builder.addBooleanProperty(".isParented", CommandScheduler.getInstance().));
-//        builder.addStringProperty("interruptBehavior", null, null);
-
+//        builder.addBooleanProperty(".isParented", );
+        builder.addStringProperty("interruptBehavior", () -> "kCancelSelf", null); // Always the value in allwpilib
         builder.addBooleanProperty("runsWhenDisabled", m_command::runsWhenDisabled, null);
     }
 }
