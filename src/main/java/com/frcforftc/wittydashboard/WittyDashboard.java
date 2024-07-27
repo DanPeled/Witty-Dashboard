@@ -1,23 +1,20 @@
 package com.frcforftc.wittydashboard;
 
-import android.net.Network;
-
 import androidx.annotation.NonNull;
 
 import com.frcforftc.wittydashboard.sendables.RobotSendable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotserver.internal.webserver.websockets.tootallnate.TooTallWebSocket;
 import org.frcforftc.networktables.NetworkTablesEntry;
 import org.frcforftc.networktables.NetworkTablesInstance;
-import org.frcforftc.networktables.NetworkTablesValue;
 import org.frcforftc.networktables.NetworkTablesValueType;
 import org.frcforftc.networktables.sendable.Sendable;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Consumer;
 
 /**
  * The WittyDashboard class manages the integration with NetworkTables * and handles sending data from the robot to the dashboard.
@@ -25,7 +22,7 @@ import java.util.function.Consumer;
 public class WittyDashboard {
     private static NetworkTablesInstance m_ntInstance;
     //    private static NetworkTable m_ntTable;
-    private static final ConcurrentMap<String, SendableBuilderImpl> m_networkTables = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, SendableBuilderImpl> m_sendableBuilders = new ConcurrentHashMap<>();
     private static final Set<String> addedValues = ConcurrentHashMap.newKeySet();
     private static RobotSendable m_robotSendable;
     private static Thread runThread;
@@ -36,10 +33,10 @@ public class WittyDashboard {
      */
     public static synchronized void start(OpMode opMode) {
         m_ntInstance = NetworkTablesInstance.getDefaultInstance();
-        m_ntInstance.startNT4Server();
         if (opMode != null) m_robotSendable = new RobotSendable(opMode);
         isRunning = true;
-        sendRobotData();
+        m_ntInstance.startNT4Server("192.168.49.1", 5810);
+
         runThread = new Thread(() -> {
             while (isRunning) {
                 update();
@@ -50,7 +47,13 @@ public class WittyDashboard {
                 }
             }
         });
+
         runThread.start();
+        if (m_ntInstance.getServer() == null) {
+            throw new RuntimeException("AHHHHHHH");
+        } else {
+            RobotLog.vv("NetworkTables", "Server started...");
+        }
     }
 
 //    /**
@@ -120,7 +123,7 @@ public class WittyDashboard {
             addSendable(key, (Sendable) value);
             return;
         }
-
+        RobotLog.vv("Value", value.toString());
         switch (NetworkTablesValueType.determineType(value)) {
             case Boolean -> m_ntInstance.putBoolean(key, (boolean) value);
             case Double -> m_ntInstance.putNumber(key, (double) value);
@@ -152,14 +155,8 @@ public class WittyDashboard {
      * Adds a Sendable to the NetworkTable. * * @param key      the key for the Sendable * @param sendable the Sendable to add * @see Sendable
      */
     public static void addSendable(@NonNull String key, Sendable sendable) {
-//        NetworkTable table;
-//        synchronized (m_ntTable) {
-//            table = m_ntTable.getSubTable(key);
-//            if (SendableRegistry.contains(sendable)) return;
-//            else m_networkTables.put(table.getPath(), new SendableBuilderImpl(table));
-//            SendableRegistry.add(sendable, key);
-//        }
-//        sendable.initSendable(m_networkTables.get(table.getPath()));
+        SendableBuilderImpl impl = new SendableBuilderImpl(sendable);
+        impl.post(key, WittyDashboard::put);
     }
 
 }
