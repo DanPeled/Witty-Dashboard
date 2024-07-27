@@ -101,9 +101,6 @@ repositories {
 maven {
         url "https://repo.dairy.foundation/releases" // For coming soon features, isn't required for now
     }
-maven {
-        url uri("https://frcmaven.wpi.edu/release")
-    }
 // ...
 ```
 
