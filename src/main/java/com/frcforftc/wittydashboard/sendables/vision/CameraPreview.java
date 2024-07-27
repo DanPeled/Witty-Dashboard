@@ -1,4 +1,4 @@
-package com.frcforftc.wittydashboard.sendables;
+package com.frcforftc.wittydashboard.sendables.vision;
 
 import org.frcforftc.networktables.sendable.Sendable;
 import org.frcforftc.networktables.sendable.SendableBuilder;

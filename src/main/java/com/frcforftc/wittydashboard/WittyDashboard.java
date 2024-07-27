@@ -2,7 +2,9 @@ package com.frcforftc.wittydashboard;
 
 import androidx.annotation.NonNull;
 
+import com.arcrobotics.ftclib.command.Command;
 import com.frcforftc.wittydashboard.sendables.RobotSendable;
+import com.frcforftc.wittydashboard.sendables.ftclib.CommandSendable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -54,6 +56,10 @@ public class WittyDashboard {
         } else {
             RobotLog.vv("NetworkTables", "Server started...");
         }
+    }
+
+    public void putCommand(String key, Command command) {
+        addSendable(key, new CommandSendable(command));
     }
 
 //    /**
