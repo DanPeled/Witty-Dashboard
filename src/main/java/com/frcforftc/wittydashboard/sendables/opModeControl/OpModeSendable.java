@@ -1,17 +1,14 @@
-package com.frcforftc.wittydashboard.sendables;
+package com.frcforftc.wittydashboard.sendables.opModeControl;
 
 import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
-import org.firstinspires.ftc.robotcore.internal.opmode.OpModeMeta;
-import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
 import org.frcforftc.networktables.sendable.Sendable;
 import org.frcforftc.networktables.sendable.SendableBuilder;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -19,10 +16,9 @@ import java.util.Map;
  * The RobotSendable class represents a sendable robot configuration.
  * It implements the Sendable interface to allow for data sending.
  */
-public class RobotSendable implements Sendable {
+public class OpModeSendable implements Sendable {
     private final OpMode m_opMode;
     private final Map<String, List<HardwareDevice>> hardwareMap;
-    private final List<String> m_registeredOpModes = new ArrayList<>();
 
     /**
      * Constructs a RobotSendable instance.
@@ -30,7 +26,7 @@ public class RobotSendable implements Sendable {
      * @param opMode the OpMode instance associated with this RobotSendable
      * @throws RuntimeException if the hardware map field cannot be accessed
      */
-    public RobotSendable(@NonNull OpMode opMode) {
+    public OpModeSendable(@NonNull OpMode opMode) {
         this.m_opMode = opMode;
 
         // Access hardwareMap directly through reflection
@@ -43,11 +39,6 @@ public class RobotSendable implements Sendable {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-
-        // Get all registered opModes
-        RegisteredOpModes.getInstance().getOpModes().forEach((OpModeMeta meta) ->
-                m_registeredOpModes.add(meta.getDisplayName())
-        );
     }
 
     /**
@@ -74,8 +65,6 @@ public class RobotSendable implements Sendable {
 
             builder.addBooleanProperty("Is Started", () -> isStarted, null);
             builder.addIntProperty("Runtime", () -> (int) m_opMode.time, null);
-
-            builder.addStringArrayProperty("Registered OpModes", () -> m_registeredOpModes.toArray(new String[0]), null);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Failed to initialize RobotSendable", e);
         }

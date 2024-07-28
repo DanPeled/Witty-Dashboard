@@ -3,12 +3,11 @@ package com.frcforftc.wittydashboard;
 import androidx.annotation.NonNull;
 
 import com.arcrobotics.ftclib.command.Command;
-import com.frcforftc.wittydashboard.sendables.RobotSendable;
+import com.frcforftc.wittydashboard.sendables.opModeControl.OpModeSendable;
 import com.frcforftc.wittydashboard.sendables.ftclib.CommandSendable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.RobotLog;
 
-import org.firstinspires.ftc.robotserver.internal.webserver.websockets.tootallnate.TooTallWebSocket;
 import org.frcforftc.networktables.NetworkTablesEntry;
 import org.frcforftc.networktables.NetworkTablesInstance;
 import org.frcforftc.networktables.NetworkTablesValueType;
@@ -26,7 +25,7 @@ public class WittyDashboard {
     //    private static NetworkTable m_ntTable;
     private static final ConcurrentMap<String, SendableBuilderImpl> m_sendableBuilders = new ConcurrentHashMap<>();
     private static final Set<String> addedValues = ConcurrentHashMap.newKeySet();
-    private static RobotSendable m_robotSendable;
+    private static OpModeSendable m_opModeSendable;
     private static Thread runThread;
     private static boolean isRunning = false;
 
@@ -35,7 +34,7 @@ public class WittyDashboard {
      */
     public static synchronized void start(OpMode opMode) {
         m_ntInstance = NetworkTablesInstance.getDefaultInstance();
-        if (opMode != null) m_robotSendable = new RobotSendable(opMode);
+        if (opMode != null) m_opModeSendable = new OpModeSendable(opMode);
         isRunning = true;
         m_ntInstance.startNT4Server("192.168.49.1", 5810);
 
@@ -108,7 +107,7 @@ public class WittyDashboard {
      * Sends the robot data sendable to the network tables * * @see RobotSendable * @see NetworkTable * @see #addSendable(String, Sendable)
      */
     private static void sendRobotData() {
-        if (m_robotSendable != null) WittyDashboard.addSendable("OpMode", m_robotSendable);
+        if (m_opModeSendable != null) WittyDashboard.addSendable("OpMode", m_opModeSendable);
     }
 
 
