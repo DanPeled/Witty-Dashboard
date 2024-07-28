@@ -9,6 +9,10 @@ import org.frcforftc.networktables.sendable.SendableBuilder;
 public class CommandSendable implements Sendable {
     private final Command m_command;
 
+    public String getCommandName() {
+        return m_command.getName();
+    }
+
     public CommandSendable(Command command) {
         this.m_command = command;
     }

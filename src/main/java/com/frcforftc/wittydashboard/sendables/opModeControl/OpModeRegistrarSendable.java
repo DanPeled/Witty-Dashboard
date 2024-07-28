@@ -1,5 +1,6 @@
 package com.frcforftc.wittydashboard.sendables.opModeControl;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 
 import com.qualcomm.ftccommon.FtcEventLoop;
@@ -10,22 +11,18 @@ import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes;
 import org.frcforftc.networktables.sendable.Sendable;
 import org.frcforftc.networktables.sendable.SendableBuilder;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 public class OpModeRegistrarSendable implements Sendable {
-    private static FtcEventLoop m_eventLoop = null;
+    @SuppressLint("StaticFieldLeak")
     private List<String> m_opModeNames;
 
-    @OnCreateEventLoop
-    public static void attachEventLoop(Context context, FtcEventLoop loop) {
-        m_eventLoop = loop;
-    }
 
     public OpModeRegistrarSendable() {
-        if (m_eventLoop == null) {
+        if (OpModeController.getEventLoop() == null) {
             // Handle initialization error
         }
 
@@ -33,30 +30,30 @@ public class OpModeRegistrarSendable implements Sendable {
     }
 
     private String getCurrentOpModeName() {
-        if (m_eventLoop == null) {
+        if (OpModeController.getEventLoop() == null) {
             return "";
         }
 
-        return m_eventLoop.getOpModeManager().getActiveOpModeName();
+        return OpModeController.getOpModeManager().getActiveOpModeName();
     }
 
-    private List<OpModeMeta> collectOpModesMeta() {
-        return RegisteredOpModes.getInstance().getOpModes();
+    public static List<OpModeMeta> collectOpModesMeta() {
+        return RegisteredOpModes.getInstance().getOpModes().stream().filter((meta) -> meta.flavor != OpModeMeta.Flavor.SYSTEM).collect(Collectors.toList());
     }
 
-    private List<String> collectOpModeNames() {
+    public static List<String> collectOpModeNames() {
         return collectOpModeNames(collectOpModesMeta().stream());
     }
 
-    private List<String> collectOpModeNames(Stream<OpModeMeta> stream) {
+    public static List<String> collectOpModeNames(Stream<OpModeMeta> stream) {
         return stream.map(OpModeMeta::getDisplayName).collect(Collectors.toList());
     }
 
-    private List<String> collectTeleopNames(Stream<OpModeMeta> stream) {
+    public static List<String> collectTeleopNames(Stream<OpModeMeta> stream) {
         return collectOpModeNames(stream.filter(meta -> meta.flavor.equals(OpModeMeta.Flavor.TELEOP)));
     }
 
-    private List<String> collectAutonomousNames(Stream<OpModeMeta> stream) {
+    public static List<String> collectAutonomousNames(Stream<OpModeMeta> stream) {
         return collectOpModeNames(stream.filter(meta -> meta.flavor.equals(OpModeMeta.Flavor.AUTONOMOUS)));
     }
 
