@@ -1,3 +1,4 @@
+package com.frcforftc.wittydashboard.sendables.hardware;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
