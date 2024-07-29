@@ -58,9 +58,6 @@ repositories {
 dependencies {
     implementation('com.github.FRC-For-FTC-Tools:nt-self-impl:0.0.1') {
         exclude group: 'org.java-websocket', module: 'Java-WebSocket'
-        exclude group: 'org.apache.logging.log4j', module: 'log4j-slf4j-impl'
-        exclude group: 'org.slf4j', module: 'slf4j-api'
-        exclude group: 'org.apache.logging.log4j', module: 'log4j-api:2.20.0'
     }
 
     // FTC dependencies

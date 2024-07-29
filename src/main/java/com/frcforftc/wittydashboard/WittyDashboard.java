@@ -3,8 +3,8 @@ package com.frcforftc.wittydashboard;
 import androidx.annotation.NonNull;
 
 import com.arcrobotics.ftclib.command.Command;
-import com.frcforftc.wittydashboard.sendables.opModeControl.OpModeSendable;
 import com.frcforftc.wittydashboard.sendables.ftclib.CommandSendable;
+import com.frcforftc.wittydashboard.sendables.opModeControl.OpModeSendable;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -13,7 +13,7 @@ import org.frcforftc.networktables.NetworkTablesInstance;
 import org.frcforftc.networktables.NetworkTablesValueType;
 import org.frcforftc.networktables.sendable.Sendable;
 
-import java.util.*;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,25 +21,25 @@ import java.util.concurrent.ConcurrentMap;
  * The WittyDashboard class manages the integration with NetworkTables * and handles sending data from the robot to the dashboard.
  */
 public class WittyDashboard {
-    private static NetworkTablesInstance m_ntInstance;
     //    private static NetworkTable m_ntTable;
     private static final ConcurrentMap<String, SendableBuilderImpl> m_sendableBuilders = new ConcurrentHashMap<>();
-    private static final Set<String> addedValues = ConcurrentHashMap.newKeySet();
+    private static final Set<String> m_addedValues = ConcurrentHashMap.newKeySet();
+    private static NetworkTablesInstance m_ntInstance;
     private static OpModeSendable m_opModeSendable;
-    private static Thread runThread;
-    private static boolean isRunning = false;
+    private static Thread m_runThread;
+    private static boolean m_isRunning = false;
 
     /**
      * Starts the WittyDashboard with the given OpMode. * * @param opMode the OpMode to associate with the dashboard * @see OpMode
      */
     public static synchronized void start(OpMode opMode) {
         m_ntInstance = NetworkTablesInstance.getDefaultInstance();
-        if (opMode != null) m_opModeSendable = new OpModeSendable(opMode);
-        isRunning = true;
+        setOpMode(opMode);
+        m_isRunning = true;
         m_ntInstance.startNT4Server("192.168.49.1", 5810);
 
-        runThread = new Thread(() -> {
-            while (isRunning) {
+        m_runThread = new Thread(() -> {
+            while (m_isRunning) {
                 update();
                 try {
                     Thread.sleep(200);
@@ -49,7 +49,7 @@ public class WittyDashboard {
             }
         });
 
-        runThread.start();
+        m_runThread.start();
         if (m_ntInstance.getServer() == null) {
             throw new RuntimeException("AHHHHHHH");
         } else {
@@ -57,8 +57,19 @@ public class WittyDashboard {
         }
     }
 
-    public void putCommand(String key, Command command) {
-        addSendable(key, new CommandSendable(command));
+    public static synchronized void setOpMode(OpMode opMode) {
+        if (opMode != null) m_opModeSendable = new OpModeSendable(opMode);
+    }
+
+    public static boolean isRunning() {
+        return m_isRunning;
+    }
+
+    /**
+     * Updates the dashboard with the current state of the robot.
+     */
+    private static void update() {
+        sendRobotData();
     }
 
 //    /**
@@ -97,38 +108,35 @@ public class WittyDashboard {
 //    }
 
     /**
-     * Updates the dashboard with the current state of the robot.
-     */
-    private static void update() {
-        sendRobotData();
-    }
-
-    /**
      * Sends the robot data sendable to the network tables * * @see RobotSendable * @see NetworkTable * @see #addSendable(String, Sendable)
      */
     private static void sendRobotData() {
         if (m_opModeSendable != null) WittyDashboard.addSendable("OpMode", m_opModeSendable);
     }
 
-
     /**
      * Stops the WittyDashboard.
      */
     public static synchronized void stop() {
-        isRunning = false;
-        runThread.interrupt();
+        m_isRunning = false;
+        m_runThread.interrupt();
         m_ntInstance.closeServer();
     }
 
     /**
-     * Adds a value to the NetworkTable. * If provided with a sendable will automatically call the addSendable method instead * * @param key   the key for the value * @param value the value to add * @see #addSendable(String, Sendable) * @see NetworkTable
+     * Adds a value to the NetworkTable.
+     * If provided with a sendable will automatically call the addSendable method instead
+     *
+     * @param key   the key for the value
+     * @param value the value to add * @see #addSendable(String, Sendable)
+     * @see NetworkTablesEntry
      */
     public synchronized static <T> void put(@NonNull String key, T value) {
         if (value instanceof Sendable) {
             addSendable(key, (Sendable) value);
             return;
         }
-        RobotLog.vv("Value", value.toString());
+
         switch (NetworkTablesValueType.determineType(value)) {
             case Boolean -> m_ntInstance.putBoolean(key, (boolean) value);
             case Double -> m_ntInstance.putNumber(key, (double) value);
@@ -155,13 +163,16 @@ public class WittyDashboard {
         return value.getValue().get();
     }
 
-
     /**
      * Adds a Sendable to the NetworkTable. * * @param key      the key for the Sendable * @param sendable the Sendable to add * @see Sendable
      */
     public static void addSendable(@NonNull String key, Sendable sendable) {
         SendableBuilderImpl impl = new SendableBuilderImpl(sendable);
         impl.post(key, WittyDashboard::put);
+    }
+
+    public void putCommand(String key, Command command) {
+        addSendable(key, new CommandSendable(command));
     }
 
 }
