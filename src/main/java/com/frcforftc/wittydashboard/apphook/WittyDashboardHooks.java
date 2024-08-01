@@ -56,13 +56,13 @@ public class WittyDashboardHooks implements OpModeManagerNotifier.Notifications 
 
         @Override
         public void onCreate(@NonNull Context context) {
-            m_runThread = new Thread(() -> {
-                WittyDashboard.start(null);
-                RobotLog.vv("WittyDashboard", "Started server...");
-            });
+//            m_runThread = new Thread(() -> {
+//                WittyDashboard.start(null);
+//                RobotLog.vv("WittyDashboard", "Started server...");
+//            });
 
 
-            m_runThread.start();
+//            m_runThread.start();
         }
 
         @Override
